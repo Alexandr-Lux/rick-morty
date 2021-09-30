@@ -13,10 +13,13 @@ export default createStore({
       state.characters = state.characters.concat(payload.results)
     }
   },
+  getters: {
+    getHeroInfo: (state) => (id) => state.characters.find((item) => item.id === id)
+  },
   actions: {
     async getCharacters (ctx) {
       try {
-        const { data } = await axios.get('https://rickandmortyapi.com/api/character')
+        const { data } = await axios('https://rickandmortyapi.com/api/character')
         ctx.commit('SET_CHARACTERS', data)
       } catch (error) {
         console.log(error)
@@ -24,8 +27,7 @@ export default createStore({
     },
     async addCharacters (ctx, page) {
       try {
-        const { data } = await axios.get(`https://rickandmortyapi.com/api/character/?page=${page}`)
-        console.log(data)
+        const { data } = await axios(`https://rickandmortyapi.com/api/character/?page=${page}`)
         ctx.commit('ADD_CHARACTERS', data)
       } catch (error) {
         console.log(error)

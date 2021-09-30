@@ -1,13 +1,15 @@
 <template>
-  <div class="main-wrapper" ref="list">
+  <div class="main-wrapper">
     <h1 class="main-title">Characters</h1>
     <main class="main-content">
-      <ul class="person-cards" id="person-list" v-if="characters">
+      <ul class="person-cards" v-if="characters">
         <li class="person-item" v-for="item in characters" :key="item.id" >
           <person
             :name="item.name"
             :photoURL="item.image"
             :species="item.species"
+            :episodes="item.episode"
+            :identifier="item.id"
           />
         </li>
       </ul>
@@ -41,7 +43,8 @@ export default {
   methods: {
     ...mapActions({
       getCharacters: 'getCharacters',
-      addCharacters: 'addCharacters'
+      addCharacters: 'addCharacters',
+      getLastFiveEpisodes: 'fetchLastFiveEpisodes'
     }),
     loadMore () {
       const currentScroll = document.documentElement.scrollTop
@@ -71,16 +74,6 @@ export default {
 
 <style lang="scss" scoped>
 
-.main-wrapper {
-  padding: 20px 0;
-}
-
-.main-title{
-  font-size: 32px;
-  margin-bottom: 30px;
-  text-transform: uppercase;
-}
-
 .btn {
   padding: 10px 20px;
   border-radius: 5px;
@@ -92,12 +85,25 @@ export default {
   margin: 0 -10px;
   display: flex;
   flex-wrap: wrap;
+  @media (min-width: 768px) and (max-width: 996px) {
+    width: 80%;
+    margin: 0 auto;
+  }
 }
 
 .person-item {
   padding: 0 10px;
   margin-bottom: 20px;
   flex: 1 0 50%;
+  @media (max-width: 996px) {
+    flex-basis: 100%;
+  }
+  @media (max-width: 767px) {
+    flex-basis: 50%;
+  }
+  @media (max-width: 479px) {
+    flex-basis: 100%
+  }
 }
 
 .loading {

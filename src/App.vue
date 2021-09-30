@@ -49,4 +49,14 @@ body {
   margin: 0 auto;
 }
 
+.main-wrapper {
+  padding: 20px 0;
+}
+
+.main-title {
+  font-size: 32px;
+  margin-bottom: 30px;
+  text-transform: uppercase;
+}
+
 </style>
