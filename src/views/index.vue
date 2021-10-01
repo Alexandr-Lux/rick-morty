@@ -1,19 +1,28 @@
 <template>
   <div class="main-wrapper">
-    <h1 class="main-title">Characters</h1>
+    <header class="header">
+      <h1 class="main-title">Characters</h1>
+      <div class="form">
+        <form class="input" @submit.prevent="setFilter()">
+          <input class="input__name" type="text" placeholder="name" v-model="inputArea">
+          <select name="status" class="status" v-model="selectConfig">
+            <option class="select__item" value="" selected>All</option>
+            <option class="select__item" value="alive">Alive</option>
+            <option class="select__item" value="dead">Dead</option>
+            <option class="select__item" value="unknown">Unknown</option>
+          </select>
+          <button class="form-btn">Filter</button>
+        </form>
+        <button class="form-btn reset" @click="removeFilter()">Reset</button>
+      </div>
+    </header>
     <main class="main-content">
-      <ul class="person-cards" v-if="characters">
+      <ul class="person-cards">
         <li class="person-item" v-for="item in characters" :key="item.id" >
-          <person
-            :name="item.name"
-            :photoURL="item.image"
-            :species="item.species"
-            :episodes="item.episode"
-            :identifier="item.id"
-          />
+          <person :hero="item" :isFilter="isFilter" />
         </li>
       </ul>
-      <div class="loading">
+      <div class="loading" v-if="loading">
         <loading />
       </div>
     </main>
@@ -21,14 +30,20 @@
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapGetters, mapMutations } from 'vuex'
 import person from '../components/person.vue'
 import loading from '../components/loading.vue'
 
 export default {
   data () {
     return {
-      page: 2
+      page: 1,
+      filterPage: 1,
+      loading: false,
+      inputArea: '',
+      selectConfig: '',
+      characters: [],
+      isFilter: false
     }
   },
   components: {
@@ -36,32 +51,70 @@ export default {
     loading
   },
   computed: {
-    ...mapState({
-      characters: state => state.characters
-    })
+    ...mapGetters(['getCharacters', 'getFiltered'])
   },
   methods: {
-    ...mapActions({
-      getCharacters: 'getCharacters',
-      addCharacters: 'addCharacters',
-      getLastFiveEpisodes: 'fetchLastFiveEpisodes'
-    }),
-    loadMore () {
+    ...mapActions(['fetchCharacters', 'fetchFiltered']),
+    ...mapMutations(['CLEAR_FILTERED']),
+    async setFilter () {
+      if (this.inputArea !== '' || this.selectConfig !== '') {
+        this.isFilter = true
+        this.filterPage = 1
+        await this.fetchCharacters({
+          page: this.filterPage,
+          input: this.inputArea,
+          select: this.selectConfig
+        })
+        this.characters = this.getFiltered
+        this.loading = false
+      }
+    },
+    removeFilter () {
+      this.isFilter = false
+      this.inputArea = ''
+      this.selectConfig = ''
+      this.characters = this.getCharacters
+      this.filterPage = 1
+      this.CLEAR_FILTERED()
+    },
+    async loadMore () {
       const currentScroll = document.documentElement.scrollTop
       const documentHeight = document.documentElement.scrollHeight
       const screenHeight = document.documentElement.clientHeight
 
       if (documentHeight - screenHeight <= currentScroll) {
-        setTimeout(async () => {
-          await this.addCharacters(this.page)
-          this.page++
-        }, 500)
+        this.loading = true
+        if (this.isFilter) {
+          ++this.filterPage
+          await this.fetchCharacters({
+            page: this.filterPage,
+            input: this.inputArea,
+            select: this.selectConfig
+          })
+          this.characters = this.getFiltered
+        } else {
+          ++this.page
+          await this.fetchCharacters({
+            page: this.page,
+            input: this.inputArea,
+            select: this.selectConfig
+          })
+          this.characters = this.getCharacters
+        }
       }
     }
   },
   async created () {
+    this.characters = this.getCharacters
+    this.CLEAR_FILTERED()
     if (this.characters.length === 0) {
-      await this.getCharacters()
+      this.loading = true
+      await this.fetchCharacters({
+        page: this.page,
+        input: this.inputArea,
+        select: this.selectConfig
+      })
+      this.characters = this.getCharacters
     }
 
     window.addEventListener('scroll', this.loadMore)
@@ -73,6 +126,46 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+
+.input__name {
+  border: 1px solid #ccc;
+  border-right: none;
+  height: 30px;
+  width: 130px;
+  padding: 0 5px;
+  border-radius: 5px 0 0 5px;
+  &:placeholder {
+    color: #aaa;
+  }
+}
+
+.form {
+  display: flex;
+}
+
+.form-btn {
+  padding: 0 15px;
+  height: 30px;
+  text-transform: uppercase;
+  background: linear-gradient(to top, #e4d59b, #eed);
+  color: #777;
+  &:hover {
+    background: linear-gradient(to bottom, #e4d59b, #eed);
+  }
+  &.reset {
+    border-radius: 0 5px 5px 0;
+    border-left: 1px solid #fff
+  }
+}
+
+.status {
+  height: 30px;
+  width: 100px;
+  font-family: 'Pangolin', sans-serif;
+  border: 1px solid #ccc;
+  text-transform: uppercase;
+  color: #777;
+}
 
 .btn {
   padding: 10px 20px;
@@ -104,11 +197,6 @@ export default {
   @media (max-width: 479px) {
     flex-basis: 100%
   }
-}
-
-.loading {
-  display: flex;
-  justify-content: center;
 }
 
 </style>

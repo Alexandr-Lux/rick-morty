@@ -53,10 +53,35 @@ body {
   padding: 20px 0;
 }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.home {
+  font-size: 20px;
+  padding: 0 15px;
+  height: 30px;
+  text-transform: uppercase;
+  background: linear-gradient(to top, #e4d59b, #eed);
+  color: #777;
+  cursor: pointer;
+  border-radius: 7px;
+  &:hover {
+    background: linear-gradient(to bottom, #e4d59b, #eed);
+  }
+}
+
 .main-title {
   font-size: 32px;
   margin-bottom: 30px;
   text-transform: uppercase;
+  text-align: center;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
 }
 
 </style>

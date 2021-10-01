@@ -1,36 +1,51 @@
 <template>
   <div class="main-wrapper">
-    <h1 class="main-title" v-if="hero">{{hero.name}}</h1>
-    <main class="main-content">
-      <div class="avatar">
-        <img :src="hero.image" alt="">
+    <div class="loading" v-if="loading">
+      <loading />
+    </div>
+    <div class="character" v-else>
+      <div class="header">
+        <h1 class="main-title" v-if="hero">{{hero.name}}</h1>
+        <div class="home" @click="$router.push({ name: 'index' })">Home</div>
       </div>
-      <div class="info">
-        <div class="info__text">Species</div>
-        <div class="info__value">{{hero.species}}</div>
-        <div class="info__text">Status</div>
-        <div class="info__value">{{hero.status}}</div>
-        <div class="info__text">Location</div>
-        <div class="info__value">{{hero.location.name}}</div>
-      </div>
-    </main>
+      <main class="main-content" v-if="hero">
+        <div class="avatar">
+          <img :src="hero.image" alt="">
+        </div>
+        <div class="info">
+          <div class="info__text">Species</div>
+          <div class="info__value">{{hero.species}}</div>
+          <div class="info__text">Status</div>
+          <div class="info__value">{{hero.status}}</div>
+          <div class="info__text">Location</div>
+          <div class="info__value">{{hero.location.name}}</div>
+        </div>
+      </main>
+    </div>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapActions } from 'vuex'
+import loading from '../components/loading.vue'
 
 export default {
   data () {
     return {
-      hero: null
+      hero: null,
+      loading: false
     }
   },
-  computed: {
-    ...mapGetters(['getHeroInfo'])
+  components: {
+    loading
   },
-  created () {
-    this.hero = this.getHeroInfo(+this.$route.params.id)
+  methods: {
+    ...mapActions(['fetchHeroInfoById'])
+  },
+  async created () {
+    this.loading = true
+    this.hero = await this.fetchHeroInfoById(this.$route.params.id)
+    this.loading = false
   }
 }
 </script>

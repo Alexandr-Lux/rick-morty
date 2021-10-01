@@ -1,29 +1,32 @@
 <template>
   <div class="card">
     <div class="card__photo">
-      <img :src="photoURL" alt="" class="card__img">
+      <img :src="hero.image" alt="" class="card__img">
     </div>
     <div class="card__content">
       <div class="card__header">
         <div class="card__name" @click="$router.push({
           name: 'character',
           params: {
-            id: identifier
+            id: hero.id
           }
         })">
-          {{name}}
+          {{hero.name}}
         </div>
         <div class="card__species">
-          {{species}}
+          {{hero.species}}
         </div>
       </div>
       <section class="card__episodes episodes">
         <h2 class="episodes__title">Last 5 episodes</h2>
-        <ul class="episodes__list" v-if="lastFiveEpisodes.length !== 0">
-          <li class="episodes__item" v-for="episode in lastFiveEpisodes" :key="episode.name">
-            <router-link to="character">
-              {{episode.name}}
-            </router-link>
+        <ul class="episodes__list" v-if="lastFiveEpisodes">
+          <li class="episodes__item" v-for="episode in lastFiveEpisodes" :key="episode.id" @click="$router.push({
+            name: 'episode',
+            params: {
+              id: episode.id
+            }
+        })">
+            {{episode.name}}
           </li>
         </ul>
       </section>
@@ -32,34 +35,31 @@
 </template>
 
 <script>
-import axios from 'axios'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'person',
   data () {
     return {
-      loading: false,
-      lastFiveEpisodes: []
+      lastFiveEpisodes: null
     }
   },
   props: {
-    name: String,
-    photoURL: String,
-    species: String,
-    episodes: Array,
-    identifier: Number
+    hero: Object,
+    isFilter: Boolean
   },
   methods: {
-    fetchLastFiveEpisodes (array) {
-      const lastFiveURL = array.slice(-5)
-      lastFiveURL.forEach(async url => {
-        const { data } = await axios.get(url)
-        this.lastFiveEpisodes.push({ name: data.name, url })
+    ...mapActions(['fetchLastFiveEpisodes'])
+  },
+  async created () {
+    this.lastFiveEpisodes = this.hero.lastFiveEpisodes
+    if (this.hero.lastFiveEpisodes.length === 0) {
+      await this.fetchLastFiveEpisodes({
+        episodes: this.hero.episode,
+        id: this.hero.id,
+        isFilter: this.isFilter
       })
     }
-  },
-  created () {
-    this.fetchLastFiveEpisodes(this.episodes)
   }
 }
 </script>
@@ -101,11 +101,16 @@ export default {
   .card__header {
     display: flex;
     justify-content: space-between;
+    margin-bottom: 5px;
+
+    border-width: 0;
+    border-style: solid;
+    border-bottom-width: 1px;
+    border-image: linear-gradient(to left, rgba(0,0,0,0), rgba(77,77,77,1), rgba(0,0,0,0)) 1;
   }
 
   .card__name {
     font-size: 24px;
-    margin-bottom: 5px;
     transition: .2s;
     cursor: pointer;
     &:hover {
@@ -126,6 +131,7 @@ export default {
 
   .episodes__item {
     margin-bottom: 5px;
+    cursor: pointer;
     &:hover {
       color: #07c5bb;
     }
